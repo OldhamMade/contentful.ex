@@ -157,6 +157,50 @@ defmodule Contentful.Query do
   end
 
   @doc """
+  adds a `locale` parameter for returning sets of `Contentful.Entry`
+  in a specific `Contentful.Locale`.
+
+  `using_locale` will only work with `Contentful.Delivery.Entries` at the moment.
+
+  ## Examples
+      alias Contentful.Delivery.Entries
+      Entries |> using_locale("de") |> fetch_all
+
+      # translates in the background to
+
+      "<api_url>/entries?locale=de"
+
+      # also works with passing `Contentful.Locale`:
+
+      my_locale = %Contentful.Locale{code: "de"}
+      Entries |> using_locale(my_locale) |> fetch_all
+  """
+  @spec using_locale({Entries, list()}, String.t() | Locale.t()) :: {Entries, list()}
+  def using_locale({Entries, parameters}, nil) do
+    {Entries, parameters}
+  end
+
+  def using_locale({Entries, parameters}, "*") do
+    {Entries, parameters}
+  end
+
+  def using_locale({Entries, parameters}, locale) when is_binary(locale) do
+    {Entries, parameters |> Keyword.put(:locale, locale)}
+  end
+
+  def using_locale({Entries, parameters}, %Contentful.Locale{code: value} = _local_type) do
+    using_locale({Entries, parameters}, value)
+  end
+
+  def using_locale(Entries, locale) do
+    using_locale({Entries, []}, locale)
+  end
+
+  def using_locale(queryable, _locale) do
+    queryable
+  end
+
+  @doc """
   will __resolve__ a query chain by eagerly calling the API and resolving the response immediately
 
   ## Examples
